@@ -1,0 +1,138 @@
+<div class="page-container" v-cloak>
+    <el-card>
+        <template #header>
+            <div class="breadcrumb">
+                <el-breadcrumb separator="/">
+                    <el-breadcrumb-item>佣金记录</el-breadcrumb-item>
+                </el-breadcrumb>
+            </div>
+        </template>
+        <div>
+            <el-form :inline="true">
+                <el-form-item>
+                    <el-input v-model="where.user_id" clearable placeholder="用户ID"></el-input>
+                </el-form-item>
+                <el-form-item>
+                    <el-input v-model="where.keyword" clearable placeholder="关键字"></el-input>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click="searchEvent">查询</el-button>
+                </el-form-item>
+            </el-form>
+        </div>
+        <div>
+            <el-table
+                    :data="data_list"
+                    style="width: 100%">
+                <el-table-column
+                        fixed
+                        prop="reward_id"
+                        label="ID"
+                        min-width="100">
+                </el-table-column>
+                <el-table-column
+                        fixed
+                        prop="user_id"
+                        label="用户id"
+                        min-width="100">
+                    <template #default="{row}">
+                        <div>
+                            <el-link @click="openUserEvent(row)" type="primary" :underline="false">{{row.user_id}}
+                            </el-link>
+                        </div>
+                    </template>
+                </el-table-column>
+                <el-table-column
+                        prop="description"
+                        min-width="220"
+                        label="描述">
+                </el-table-column>
+                <el-table-column
+                        min-width="220"
+                        label="来源">
+                    <template #default="{row}">
+                        <div>{{row.target}}</div>
+                        <div>
+                            <el-tag v-if="row.target_type=='create_order_share'">{{row.target_type}}</el-tag>
+                            <el-tag v-if="row.target_type=='withdraw'" type="success">{{row.target_type}}</el-tag>
+                            <el-tag v-if="row.target_type=='refund_order_share'" type="danger">{{row.target_type}}
+                            </el-tag>
+                        </div>
+                    </template>
+                </el-table-column>
+                <el-table-column
+                        prop="reward_amount"
+                        label="金额"
+                        min-width="100">
+                </el-table-column>
+                <el-table-column
+                        prop="balance"
+                        label="余额"
+                        min-width="100">
+                </el-table-column>
+                <el-table-column
+                        prop="created_at"
+                        min-width="180"
+                        label="创建时间">
+                </el-table-column>
+            </el-table>
+            <div class="pagination-container">
+                <el-pagination
+                        background
+                        layout="prev, pager, next, total"
+                        :total="total_num"
+                        :current-page="current_page"
+                        :page-size="per_page"
+                        @current-change="currentChangeEvent"
+                >
+                </el-pagination>
+            </div>
+        </div>
+    </el-card>
+    <dialog-lists v-model:show="show_dialog" @close="show_dialog=false"></dialog-lists>
+</div>
+{hcmstag:include file="demo@/components/dialog-lists"}
+<script>
+    const App = {
+        data() {
+            return {
+                show_dialog: false,
+                is_init_list: true,
+                where: {},
+            }
+        },
+        mounted() {
+            this.where.user_id = this.getUrlQuery('user_id')
+
+        },
+        methods: {
+            openUserEvent({user_id}) {
+                this.openNewFrame('下级用户' + user_id, `{:url('user/user/index',['share_user_id'=>''])}` + user_id)
+            },
+            GetList() {
+                this.httpGet('{:url("user/sharereward/index/lists")}', {
+                    page: this.current_page,
+                    ...this.where
+                }).then(res => {
+                    debugger
+                    let {lists = {}} = res.data
+                    this.handRes(lists)
+                })
+            },
+            deleteEvent({setting_id}) {
+                this.$confirm("是否确认删除该记录？", '提示').then(() => {
+                    // this.httpPost("{:url('admin/setting/delete')}", {setting_id}).then(res => {
+                    //     if (res.status) {
+                    //         this.$message.success(res.msg)
+                    //         this.GetList()
+                    //     }
+                    // })
+                }).catch(err => {
+                })
+            },
+            searchEvent() {
+                this.refreshList()
+            }
+        }
+    }
+</script>

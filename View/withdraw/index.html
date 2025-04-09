@@ -1,0 +1,183 @@
+<div class="page-container" v-cloak>
+    <el-card>
+        <template #header>
+            <div class="breadcrumb">
+                <el-breadcrumb separator="/">
+                    <el-breadcrumb-item>提现列表</el-breadcrumb-item>
+                </el-breadcrumb>
+            </div>
+        </template>
+        <!--        <div>-->
+        <!--            <el-form :inline="true">-->
+        <!--                <el-form-item>-->
+        <!--                    <el-input v-model="where.user" clearable placeholder="审批人"></el-input>-->
+        <!--                </el-form-item>-->
+        <!--                <el-form-item>-->
+        <!--                    <el-select v-model="where.region" placeholder="活动区域">-->
+        <!--                        <el-option label="区域一" value="shanghai"></el-option>-->
+        <!--                        <el-option label="区域二" value="beijing"></el-option>-->
+        <!--                    </el-select>-->
+        <!--                </el-form-item>-->
+        <!--                <el-form-item>-->
+        <!--                    <el-button type="primary" @click="searchEvent">查询</el-button>-->
+        <!--                    <el-button type="primary" @click="openEvent">打开新窗口</el-button>-->
+        <!--                </el-form-item>-->
+        <!--            </el-form>-->
+        <!--        </div>-->
+        <div>
+            <el-table
+                    :data="data_list"
+                    style="width: 100%">
+                <el-table-column
+                        fixed
+                        prop="withdraw_id"
+                        label="ID"
+                        min-width="100">
+                </el-table-column>
+                <el-table-column
+                        fixed
+                        prop="user_id"
+                        label="用户id"
+                        min-width="100">
+                    <template #default="{row}">
+                        <div>
+                            <el-link @click="openRewardEvent(row)" type="primary" :underline="false">{{row.user_id}}
+                            </el-link>
+                        </div>
+                    </template>
+                </el-table-column>
+                <el-table-column
+                        prop="withdraw_type"
+                        label="提现渠道"
+                        min-width="100">
+                    <template #default="{row}">
+                        <div>
+                            <el-tag v-if="row.withdraw_type==0">支付宝</el-tag>
+                            <el-tag v-if="row.withdraw_type==1" type="success">微信</el-tag>
+                        </div>
+                    </template>
+                </el-table-column>
+                <el-table-column
+                        align="center"
+                        prop="withdraw_amount"
+                        label="提现金额"
+                        min-width="100">
+                    <!--                    <template #default="{row}">-->
+                    <!--                        <div>-->
+                    <!--                            <el-tag v-if="row.withdraw_type==0">支付宝</el-tag>-->
+                    <!--                            <el-tag v-if="row.withdraw_type==1" type="success">微信</el-tag>-->
+                    <!--                        </div>-->
+                    <!--                    </template>-->
+                </el-table-column>
+                <el-table-column
+                        prop="address"
+                        min-width="280"
+                        label="提现信息">
+                    <template #default="{row}">
+                        <div>
+                            <div>姓名：{{row.real_name}}</div>
+                            <div>账号：{{row.account}}</div>
+                        </div>
+                    </template>
+                </el-table-column>
+                <el-table-column
+                        prop="status"
+                        label="状态"
+                        min-width="100">
+                    <template #default="{row}">
+                        <div>
+                            <el-tag v-if="row.status==0">待处理</el-tag>
+                            <el-tag v-if="row.status==2" type="success">已打款</el-tag>
+                            <el-tag v-if="row.status==4" type="danger">已拒绝</el-tag>
+                            <el-tag v-if="row.status==3" type="waring">取消</el-tag>
+                        </div>
+                    </template>
+                </el-table-column>
+                <el-table-column
+                        prop="created_at"
+                        min-width="180"
+                        label="创建时间">
+                </el-table-column>
+                <el-table-column
+                        fixed="right"
+                        align="center"
+                        min-width="180"
+                        label="操作">
+                    <template #default="{row}">
+                        <div v-if="row.status==0 || row.status==1">
+                            <el-link>
+                                <el-button @click="agreeEvent(row)" type="primary">打款</el-button>
+                            </el-link>
+                            <el-link @click="rejectEvent(row)">
+                                <el-button type="danger">拒绝</el-button>
+                            </el-link>
+                        </div>
+                    </template>
+                </el-table-column>
+            </el-table>
+            <div class="pagination-container">
+                <el-pagination
+                        background
+                        layout="prev, pager, next, total"
+                        :total="total_num"
+                        :current-page="current_page"
+                        :page-size="per_page"
+                        @current-change="currentChangeEvent"
+                >
+                </el-pagination>
+            </div>
+        </div>
+    </el-card>
+    <dialog-lists v-model:show="show_dialog" @close="show_dialog=false"></dialog-lists>
+</div>
+{hcmstag:include file="demo@/components/dialog-lists"}
+<script>
+    const App = {
+        data() {
+            return {
+                show_dialog: false,
+                is_init_list: true,
+                where: {},
+            }
+        },
+        methods: {
+            openRewardEvent({user_id}) {
+                this.openNewFrame('佣金' + user_id, `{:url('user/shareReward/index',['user_id'=>''])}` + user_id)
+            },
+            GetList() {
+                this.httpGet('{:url("/user/withdraw/index/lists")}', {
+                    page: this.current_page,
+                    ...this.where
+                }).then(res => {
+                    let {lists = {}} = res.data
+                    this.handRes(lists)
+                })
+            },
+            agreeEvent({withdraw_id}) {
+                this.$confirm("是否确认已向客户打款？", '提示').then(() => {
+                    this.httpPost("{:url('/user/withdraw/index/agree')}", {withdraw_id}).then(res => {
+                        if (res.status) {
+                            this.$message.success(res.msg)
+                            this.GetList()
+                        }
+                    })
+                }).catch(err => {
+                })
+            },
+            rejectEvent({withdraw_id}) {
+                this.$confirm("是否确认拒绝该提现记录？", '提示').then(() => {
+                    this.httpPost("{:url('/user/withdraw/index/reject')}", {withdraw_id}).then(res => {
+                        if (res.status) {
+                            this.$message.success(res.msg)
+                            this.GetList()
+                        }
+                    })
+                }).catch(err => {
+                })
+            },
+            searchEvent() {
+                this.refreshList()
+            }
+        }
+    }
+</script>

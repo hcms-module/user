@@ -1,0 +1,268 @@
+<div class="page-container" v-cloak>
+    <el-card>
+        <template #header>
+            <div class="breadcrumb">
+                <el-breadcrumb separator="/">
+                    <el-breadcrumb-item>会员列表</el-breadcrumb-item>
+                </el-breadcrumb>
+            </div>
+        </template>
+        <div>
+            <el-form :inline="true">
+                <el-form-item>
+                    <el-input v-model="where.username" clearable placeholder="请输入账号用户名"></el-input>
+                </el-form-item>
+                <el-form-item>
+                    <el-select v-model="where.vip_type" clearable placeholder="VIP类型">
+                        <el-option label="全部" value=""></el-option>
+                        <el-option v-for="(item,index) in vip_types" :key="index" :value="item.id"
+                                   :label="item.vip_type_name">
+                        </el-option>
+                    </el-select>
+                </el-form-item>
+
+                <el-form-item>
+                    <el-input style="width: 150px" v-model="where.share_user_id" clearable
+                              placeholder="上级用户id"></el-input>
+                </el-form-item>
+
+                <el-form-item>
+                    <el-button type="primary" @click="searchEvent">查询</el-button>
+                </el-form-item>
+            </el-form>
+        </div>
+        <div>
+            <el-table
+                    :data="data_list"
+                    style="width: 100%">
+                <el-table-column
+                        fixed
+                        prop="user_id"
+                        label="ID"
+                        width="100">
+                </el-table-column>
+                <el-table-column
+                        prop="username"
+                        label="用户名"
+                        min-width="180">
+                    <template #default="{row}">
+                        <div>{{row.username}}</div>
+                        <div v-if="row.phone">手机：{{row.phone}}</div>
+                    </template>
+                </el-table-column>
+                <el-table-column
+                        prop="vip"
+                        label="会员"
+                        min-width="280">
+                    <template #default="{row}">
+                        <div v-if="row.vips">
+                            <div v-for="(vip,idx) in row.vips" style="display: flex;align-items: center">
+                                <div style="font-size:14px;line-height: 24px;">
+                                    {{vip.vip_type_name}}：{{vip.expire_time_string}}
+                                </div>
+                                <div>
+                                    <el-dropdown placement="bottom">
+                                        <el-link v-if="vip.status==1" style="margin-left: 10px;line-height: 24px;"
+                                                 type="primary"
+                                                 :underline="false">正常
+                                        </el-link>
+                                        <el-link v-if="vip.status==0" style="margin-left: 10px;line-height: 24px;"
+                                                 type="info"
+                                                 :underline="false">未激活
+                                        </el-link>
+                                        <el-link v-if="vip.status==2" style="margin-left: 10px;line-height: 24px;"
+                                                 type="warning"
+                                                 :underline="false">禁用
+                                        </el-link>
+                                        <el-link v-if="vip.status==3" style="margin-left: 10px;line-height: 24px;"
+                                                 type="danger"
+                                                 :underline="false">失效
+                                        </el-link>
+                                        <template #dropdown>
+                                            <el-dropdown-menu>
+                                                <el-dropdown-item @click="changeVipEvent(0,'未激活',row,vip)"
+                                                                  v-if="vip.status!=0">
+                                                    未激活
+                                                </el-dropdown-item>
+                                                <el-dropdown-item @click="changeVipEvent(1,'恢复',row,vip)"
+                                                                  v-if="vip.status!=1">恢复
+                                                </el-dropdown-item>
+                                                <el-dropdown-item @click="changeVipEvent(2,'禁用',row,vip)"
+                                                                  v-if="vip.status!=2">禁用
+                                                </el-dropdown-item>
+                                                <el-dropdown-item @click="changeVipEvent(3,'失效',row,vip)"
+                                                                  v-if="vip.status!=3">失效
+                                                </el-dropdown-item>
+                                            </el-dropdown-menu>
+                                        </template>
+                                    </el-dropdown>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <el-link @click="editVipEvent(row.user_id)" type="primary" :underline="false">添加/续期
+                            </el-link>
+                        </div>
+                    </template>
+                </el-table-column>
+                <el-table-column
+                        prop="login_ip"
+                        label="IP"
+                        width="160">
+                    <template #default="{row}">
+                        <div>登录：{{row.login_ip}}</div>
+                        <div>注册：{{row.register_ip}}</div>
+                    </template>
+                </el-table-column>
+                <el-table-column
+                        prop="updated_at"
+                        label="更新时间"
+                        width="180">
+                </el-table-column>
+                <el-table-column
+                        prop="created_at"
+                        label="创建时间"
+                        width="180">
+                </el-table-column>
+                <el-table-column
+                        fixed="right"
+                        align="center"
+                        min-width="100"
+                        label="操作">
+                    <template #default="{row}">
+                        <!--                        <el-link>-->
+                        <!--                            <el-button type="primary">操作</el-button>-->
+                        <!--                        </el-link>-->
+                        <el-link @click="deleteEvent(row)">
+                            <el-button type="danger">删除</el-button>
+                        </el-link>
+                    </template>
+                </el-table-column>
+            </el-table>
+            <div class="pagination-container">
+                <el-pagination
+                        background
+                        layout="prev, pager, next, total"
+                        :total="total_num"
+                        :current-page="current_page"
+                        :page-size="per_page"
+                        @current-change="currentChangeEvent"
+                >
+                </el-pagination>
+            </div>
+        </div>
+    </el-card>
+
+    <!-- 管理VIP -->
+    <el-dialog
+            v-model="vipDialogVisible"
+            title="会员续期"
+            width="500px"
+    >
+        <div>
+            <div>
+                <el-form label-width="80px">
+                    <el-form-item label="VIP类型">
+                        <el-select v-model="vip_form.vip_type">
+                            <el-option v-for="(item,index) in vip_types" :key="index" :value="item.id"
+                                       :label="item.vip_type_name">
+                            </el-option>
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item label="续期天数">
+                        <el-input v-model="vip_form.expire_day" type="number"
+                                  placeholder="请输入续期天数，可以是负数"></el-input>
+                    </el-form-item>
+                </el-form>
+            </div>
+        </div>
+        <template #footer>
+            <div class="dialog-footer">
+                <el-button @click="vipDialogVisible = false">关闭</el-button>
+                <el-button type="primary" @click="submitVipRenewal">
+                    确认
+                </el-button>
+            </div>
+        </template>
+    </el-dialog>
+</div>
+<script>
+    const App = {
+        data() {
+            return {
+                vipDialogVisible: false,
+                is_init_list: true,
+                where: {},
+                vip_form: {},
+                edit_user_id: 0,
+            }
+        },
+        mounted() {
+            this.where.share_user_id = this.getUrlQuery('share_user_id')
+        },
+        methods: {
+            changeVipEvent(status, status_text, user, vip) {
+                this.$confirm('是否将 ' + user.username + ' 的 ' + vip.vip_type_name + ' 状态改成 ' + status_text + ' ?', '提示').then(res => {
+                    this.httpPost('{:url("user/user/index/status")}', {
+                        status,
+                        user_vip_id: vip.user_vip_id
+                    }).then(rr => {
+                        if (rr.status) {
+                            this.$message.success('操作成功')
+                            this.GetList()
+                        }
+                    })
+                }).catch(err => {
+                })
+            },
+            submitVipRenewal() {
+                this.httpPost('{:url("user/user/index/renewal")}', {
+                    ...this.vip_form,
+                    user_id: this.edit_user_id
+                }).then(res => {
+                    if (res.status) {
+                        this.$message.success('操作成功')
+                        this.edit_user_id = 0
+                        this.vipDialogVisible = false
+                        this.GetList()
+                    }
+                })
+            },
+            editVipEvent(user_id) {
+                this.edit_user_id = user_id
+                this.vipDialogVisible = true
+            },
+            GetList() {
+                this.httpGet('{:url("user/user/index/lists")}', {
+                    page: this.current_page,
+                    ...this.where
+                }).then(res => {
+                    debugger
+                    let {lists = {}, vip_types = []} = res.data
+                    this.vip_types = []
+                    for (let id in vip_types) {
+                        this.vip_types.push({
+                            id,
+                            vip_type_name: vip_types[id],
+                        })
+                    }
+                    this.handRes(lists)
+                })
+            },
+            deleteEvent({user_id}) {
+                this.$confirm("是否确认删除该记录？", '提示').then(() => {
+                    // this.httpDelete("{:url('admin/setting/delete')}/" + setting_id).then(res => {
+                    //     if (res.status) {
+                    //         this.$message.success(res.msg)
+                    //         this.GetList()
+                    //     }
+                    // })
+                }).catch(err => {
+                })
+            },
+            searchEvent() {
+                this.refreshList()
+            }
+        }
+    }
+</script>
