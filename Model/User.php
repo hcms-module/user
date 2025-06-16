@@ -55,4 +55,9 @@ class User extends AbstractAuthModel
     {
         return $this->hasMany(UserVip::class, 'user_id', 'user_id');
     }
+
+    public function shareUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'share_user_id', 'user_id');
+    }
 }

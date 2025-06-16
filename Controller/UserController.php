@@ -76,7 +76,7 @@ class UserController extends AbstractController
         }
 
         $builder = User::where($where)
-            ->with(['vips'])
+            ->with(['vips', 'shareUser'])
             ->orderByDesc('user_id');
         if ($vip_type > 0) {
             $vip_user_ids = UserVip::where('vip_type', $vip_type)

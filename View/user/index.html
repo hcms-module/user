@@ -106,6 +106,22 @@
                     </template>
                 </el-table-column>
                 <el-table-column
+                        prop="share_user_id"
+                        label="上级"
+                        min-width="180">
+                    <template #default="{row}">
+                        <div v-if="row.share_user_id>0">
+                            <div>ID：{{row?.share_user_id}}</div>
+                            <div>{{row?.share_user?.nickname}}</div>
+                            <div>{{row?.share_user?.username}}</div>
+                            <div v-if="row.phone">手机：{{row.phone}}</div>
+                        </div>
+                        <div v-else>
+                            -
+                        </div>
+                    </template>
+                </el-table-column>
+                <el-table-column
                         prop="login_ip"
                         label="IP"
                         width="160">

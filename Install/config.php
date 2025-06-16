@@ -14,9 +14,9 @@ declare(strict_types=1);
 return [
     'name' => '',
     'require' => [
-        'hcms_version' => '0.1.0',
+        'hcms_version' => '3.1.0',
         'composer' => [],
         'module' => []
     ],
-    'version' => '1.0.0'
+    'version' => '0.1.0'
 ];

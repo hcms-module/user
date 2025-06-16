@@ -21,7 +21,7 @@ class CreateUserLoginTokenTable extends Migration
                 ->default('')
                 ->nullable(false)
                 ->comment('登录凭证');
-            $table->string('user_agent', 255)
+            $table->string('user_agent', 1024)
                 ->default('')
                 ->nullable(false)
                 ->comment('浏览器代理');
