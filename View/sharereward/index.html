@@ -10,7 +10,7 @@
         <div>
             <el-form :inline="true">
                 <el-form-item>
-                    <el-input v-model="where.user_id" clearable placeholder="用户ID"></el-input>
+                    <el-input v-model="where.username" clearable placeholder="用户名"></el-input>
                 </el-form-item>
                 <el-form-item>
                     <el-input v-model="where.keyword" clearable placeholder="关键字"></el-input>
@@ -33,12 +33,12 @@
                 <el-table-column
                         fixed
                         prop="user_id"
-                        label="用户id"
-                        min-width="100">
+                        label="用户"
+                        min-width="180">
                     <template #default="{row}">
                         <div>
-                            <el-link @click="openUserEvent(row)" type="primary" :underline="false">{{row.user_id}}
-                            </el-link>
+                            <div>{{row?.user?.username}}</div>
+                            <div>ID：{{row.user_id}}</div>
                         </div>
                     </template>
                 </el-table-column>
@@ -106,15 +106,11 @@
 
         },
         methods: {
-            openUserEvent({user_id}) {
-                this.openNewFrame('下级用户' + user_id, `{:url('user/user/index',['share_user_id'=>''])}` + user_id)
-            },
             GetList() {
                 this.httpGet('{:url("user/sharereward/index/lists")}', {
                     page: this.current_page,
                     ...this.where
                 }).then(res => {
-                    debugger
                     let {lists = {}} = res.data
                     this.handRes(lists)
                 })

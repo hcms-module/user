@@ -7,23 +7,19 @@
                 </el-breadcrumb>
             </div>
         </template>
-        <!--        <div>-->
-        <!--            <el-form :inline="true">-->
-        <!--                <el-form-item>-->
-        <!--                    <el-input v-model="where.user" clearable placeholder="审批人"></el-input>-->
-        <!--                </el-form-item>-->
-        <!--                <el-form-item>-->
-        <!--                    <el-select v-model="where.region" placeholder="活动区域">-->
-        <!--                        <el-option label="区域一" value="shanghai"></el-option>-->
-        <!--                        <el-option label="区域二" value="beijing"></el-option>-->
-        <!--                    </el-select>-->
-        <!--                </el-form-item>-->
-        <!--                <el-form-item>-->
-        <!--                    <el-button type="primary" @click="searchEvent">查询</el-button>-->
-        <!--                    <el-button type="primary" @click="openEvent">打开新窗口</el-button>-->
-        <!--                </el-form-item>-->
-        <!--            </el-form>-->
-        <!--        </div>-->
+        <div>
+            <el-form :inline="true">
+                <el-form-item>
+                    <el-input v-model="where.username" clearable placeholder="用户账号"></el-input>
+                </el-form-item>
+                <el-form-item>
+                    <el-input v-model="where.real_name" clearable placeholder="姓名"></el-input>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click="searchEvent">查询</el-button>
+                </el-form-item>
+            </el-form>
+        </div>
         <div>
             <el-table
                     :data="data_list"
@@ -37,12 +33,12 @@
                 <el-table-column
                         fixed
                         prop="user_id"
-                        label="用户id"
-                        min-width="100">
+                        label="用户"
+                        min-width="180">
                     <template #default="{row}">
                         <div>
-                            <el-link @click="openRewardEvent(row)" type="primary" :underline="false">{{row.user_id}}
-                            </el-link>
+                            <div>{{row?.user?.username}}</div>
+                            <div>ID：{{row.user_id}}</div>
                         </div>
                     </template>
                 </el-table-column>
@@ -62,12 +58,6 @@
                         prop="withdraw_amount"
                         label="提现金额"
                         min-width="100">
-                    <!--                    <template #default="{row}">-->
-                    <!--                        <div>-->
-                    <!--                            <el-tag v-if="row.withdraw_type==0">支付宝</el-tag>-->
-                    <!--                            <el-tag v-if="row.withdraw_type==1" type="success">微信</el-tag>-->
-                    <!--                        </div>-->
-                    <!--                    </template>-->
                 </el-table-column>
                 <el-table-column
                         prop="address"
@@ -165,8 +155,17 @@
                 })
             },
             rejectEvent({withdraw_id}) {
-                this.$confirm("是否确认拒绝该提现记录？", '提示').then(() => {
-                    this.httpPost("{:url('/user/withdraw/index/reject')}", {withdraw_id}).then(res => {
+                this.$prompt("是否确认拒绝该提现记录？", '提示', {
+                    inputPlaceholder: "请输入拒绝理由"
+                }).then(({value}) => {
+                    if (!value) {
+                        this.$message.error("请输入拒绝理由")
+                        return
+                    }
+                    this.httpPost("{:url('/user/withdraw/index/reject')}", {
+                        withdraw_id,
+                        reject_msg: value
+                    }).then(res => {
                         if (res.status) {
                             this.$message.success(res.msg)
                             this.GetList()

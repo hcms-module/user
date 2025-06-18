@@ -47,6 +47,7 @@
                         min-width="180">
                     <template #default="{row}">
                         <div>{{row.username}}</div>
+                        <div v-if="row.nickname">{{row.nickname}}</div>
                         <div v-if="row.phone">手机：{{row.phone}}</div>
                     </template>
                 </el-table-column>
@@ -143,12 +144,12 @@
                 <el-table-column
                         fixed="right"
                         align="center"
-                        min-width="100"
+                        min-width="200"
                         label="操作">
                     <template #default="{row}">
-                        <!--                        <el-link>-->
-                        <!--                            <el-button type="primary">操作</el-button>-->
-                        <!--                        </el-link>-->
+                        <el-link>
+                            <el-button @click="resetPassword(row)" type="primary">重置密码</el-button>
+                        </el-link>
                         <el-link @click="deleteEvent(row)">
                             <el-button type="danger">删除</el-button>
                         </el-link>
@@ -217,6 +218,24 @@
             this.where.share_user_id = this.getUrlQuery('share_user_id')
         },
         methods: {
+            resetPassword({user_id, username}) {
+                this.$prompt(username + ' 请输入重置密码', 'Tip', {
+                    confirmButtonText: '提交',
+                    cancelButtonText: '取消',
+                })
+                    .then(({value}) => {
+                        this.httpPost("{:url('user/user/index/password')}", {
+                            user_id,
+                            password: value
+                        }).then(rr => {
+                            if (rr.status) {
+                                this.$message.success('操作成功')
+                            }
+                        })
+                    })
+                    .catch(() => {
+                    })
+            },
             changeVipEvent(status, status_text, user, vip) {
                 this.$confirm('是否将 ' + user.username + ' 的 ' + vip.vip_type_name + ' 状态改成 ' + status_text + ' ?', '提示').then(res => {
                     this.httpPost('{:url("user/user/index/status")}', {
@@ -253,7 +272,6 @@
                     page: this.current_page,
                     ...this.where
                 }).then(res => {
-                    debugger
                     let {lists = {}, vip_types = []} = res.data
                     this.vip_types = []
                     for (let id in vip_types) {
@@ -267,12 +285,12 @@
             },
             deleteEvent({user_id}) {
                 this.$confirm("是否确认删除该记录？", '提示').then(() => {
-                    // this.httpDelete("{:url('admin/setting/delete')}/" + setting_id).then(res => {
-                    //     if (res.status) {
-                    //         this.$message.success(res.msg)
-                    //         this.GetList()
-                    //     }
-                    // })
+                    this.httpDelete("{:url('user/user/index/delete')}/" + user_id).then(res => {
+                        if (res.status) {
+                            this.$message.success(res.msg)
+                            this.GetList()
+                        }
+                    })
                 }).catch(err => {
                 })
             },

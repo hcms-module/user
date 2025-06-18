@@ -9,6 +9,7 @@ use App\Annotation\Api;
 use App\Annotation\View;
 use App\Application\Admin\Middleware\AdminMiddleware;
 use App\Application\User\Model\UserShareReward;
+use App\Application\User\Model\User;
 use App\Controller\AbstractController;
 use Hyperf\HttpServer\Annotation\Controller;
 use Hyperf\HttpServer\Annotation\GetMapping;
@@ -19,34 +20,34 @@ use Hyperf\HttpServer\Annotation\Middleware;
 class ShareRewardController extends AbstractController
 {
 
-    /**
-     * @Api()
-     * @GetMapping("index/lists")
-     */
     #[Api]
     #[GetMapping("index/lists")]
     public function list()
     {
         $where = [];
         $keyword = $this->request->input('keyword', '');
+        $username = trim($this->request->input('username', ""));
         $user_id = (int)$this->request->input('user_id', 0);
-        if ($user_id > 0) {
-            $where[] = ['user_id', $user_id];
-        }
-        if ($keyword > 0) {
+        if ($keyword != '') {
             $where[] = ['description', 'like', '%' . $keyword . '%'];
         }
-        $lists = UserShareReward::where($where)
-            ->orderByDesc('reward_id')
-            ->paginate();
+        if ($user_id > 0) {
+            $where[] = ['user_id', '=', $user_id];
+        }
+        $builder = UserShareReward::where($where)
+            ->with(['user'])
+            ->orderByDesc('reward_id');
+        if ($username != '') {
+            $user_ids = User::where('username', 'like', '%' . $username . '%')
+                ->pluck('user_id')
+                ->toArray() ?: [0];
+            $builder->whereIn('user_id', $user_ids);
+        }
+        $lists = $builder->paginate();
 
         return compact('lists');
     }
 
-    /**
-     * @View()
-     * @GetMapping(path="index")
-     */
     #[View]
     #[GetMapping]
     public function index()
