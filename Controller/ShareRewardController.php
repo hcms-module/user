@@ -8,14 +8,15 @@ namespace App\Application\User\Controller;
 use App\Annotation\Api;
 use App\Annotation\View;
 use App\Application\Admin\Middleware\AdminMiddleware;
+use Hyperf\HttpServer\Annotation\Middlewares;
+use Hyperf\Session\Middleware\SessionMiddleware;
 use App\Application\User\Model\UserShareReward;
 use App\Application\User\Model\User;
 use App\Controller\AbstractController;
 use Hyperf\HttpServer\Annotation\Controller;
 use Hyperf\HttpServer\Annotation\GetMapping;
-use Hyperf\HttpServer\Annotation\Middleware;
 
-#[Middleware(AdminMiddleware::class)]
+#[Middlewares([SessionMiddleware::class, AdminMiddleware::class])]
 #[Controller("user/sharereward")]
 class ShareRewardController extends AbstractController
 {

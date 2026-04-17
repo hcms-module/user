@@ -64,6 +64,15 @@ class UserService
         return null;
     }
 
+    /**
+     * 通过账号密码注册
+     *
+     * @param string $username
+     * @param string $password
+     * @param string $phone
+     * @return User
+     * @throws ErrorException
+     */
     public function register(string $username, string $password, string $phone = ''): User
     {
         $user = User::firstOrNew(['username' => $username]);
@@ -83,11 +92,12 @@ class UserService
 
 
     /**
-     * 根据账号密码登录
+     * 通过账号密码登录
      *
-     * @param string $username
-     * @param string $password
-     * @return mixed
+     * @param string           $username
+     * @param string           $password
+     * @param RequestInterface $request
+     * @return string
      * @throws ErrorException
      */
     public function loginByPassword(string $username, string $password, RequestInterface $request): string

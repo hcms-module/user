@@ -8,19 +8,17 @@ namespace App\Application\User\Controller;
 use App\Annotation\Api;
 use App\Annotation\View;
 use App\Application\Admin\Middleware\AdminMiddleware;
-use App\Application\Keepa\Model\KeepaShareWithdraw;
-use App\Application\Keepa\Model\KeepaUser;
+use Hyperf\HttpServer\Annotation\Middlewares;
+use Hyperf\Session\Middleware\SessionMiddleware;
 use App\Application\User\Model\ShareWithdraw;
 use App\Application\User\Model\User;
-use App\Application\User\Service\ShareRewardService;
 use App\Application\User\Service\ShareWithdrawService;
 use App\Controller\AbstractController;
 use Hyperf\HttpServer\Annotation\Controller;
 use Hyperf\HttpServer\Annotation\GetMapping;
-use Hyperf\HttpServer\Annotation\Middleware;
 use Hyperf\HttpServer\Annotation\PostMapping;
 
-#[Middleware(AdminMiddleware::class)]
+#[Middlewares([SessionMiddleware::class, AdminMiddleware::class])]
 #[Controller("/user/withdraw")]
 class WithdrawController extends AbstractController
 {

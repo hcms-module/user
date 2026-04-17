@@ -8,6 +8,7 @@ use App\Exception\ErrorException;
 use App\Model\AbstractAuthModel;
 use Hyperf\Database\Model\Relations\HasMany;
 use Hyperf\Database\Model\SoftDeletes;
+use Hyperf\Database\Model\Relations\BelongsTo;
 
 /**
  * @property int            $user_id

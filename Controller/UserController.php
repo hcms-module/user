@@ -7,6 +7,8 @@ namespace App\Application\User\Controller;
 use App\Annotation\Api;
 use App\Annotation\View;
 use App\Application\Admin\Middleware\AdminMiddleware;
+use Hyperf\HttpServer\Annotation\Middlewares;
+use Hyperf\Session\Middleware\SessionMiddleware;
 use App\Application\Admin\Service\AdminUserService;
 use App\Application\User\Model\User;
 use App\Application\User\Model\UserVip;
@@ -15,10 +17,9 @@ use App\Controller\AbstractController;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;
 use Hyperf\HttpServer\Annotation\GetMapping;
-use Hyperf\HttpServer\Annotation\Middleware;
 use Hyperf\HttpServer\Annotation\PostMapping;
 
-#[Middleware(AdminMiddleware::class)]
+#[Middlewares([SessionMiddleware::class, AdminMiddleware::class])]
 #[Controller("user/user")]
 class UserController extends AbstractController
 {
@@ -76,7 +77,7 @@ class UserController extends AbstractController
         }
 
         $builder = User::where($where)
-            ->with(['vips', 'shareUser'])
+            ->with(['vips'])
             ->orderByDesc('user_id');
         if ($vip_type > 0) {
             $vip_user_ids = UserVip::where('vip_type', $vip_type)
